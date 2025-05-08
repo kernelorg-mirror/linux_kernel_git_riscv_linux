@@ -141,6 +141,8 @@ static void __init check_unaligned_access_speed_all_cpus(void)
 	unsigned int cpu_count = num_possible_cpus();
 	struct page **bufs = kcalloc(cpu_count, sizeof(*bufs), GFP_KERNEL);
 
+	unaligned_access_init();
+
 	if (!bufs) {
 		pr_warn("Allocation failure, not measuring misaligned performance\n");
 		return;
@@ -236,6 +238,11 @@ arch_initcall_sync(lock_and_set_unaligned_access_static_branch);
 
 static int riscv_online_cpu(unsigned int cpu)
 {
+	int ret = cpu_online_unaligned_access_init(cpu);
+
+	if (ret)
+		return ret;
+
 	/* We are already set since the last check */
 	if (per_cpu(misaligned_access_speed, cpu) != RISCV_HWPROBE_MISALIGNED_SCALAR_UNKNOWN) {
 		goto exit;
@@ -248,7 +255,6 @@ static int riscv_online_cpu(unsigned int cpu)
 	{
 		static struct page *buf;
 
-		check_unaligned_access_emulated(NULL);
 		buf = alloc_pages(GFP_KERNEL, MISALIGNED_BUFFER_ORDER);
 		if (!buf) {
 			pr_warn("Allocation failure, not measuring misaligned performance\n");
