@@ -27,12 +27,29 @@ static inline bool errata_probe_pause(unsigned int stage)
 	return true;
 }
 
+static inline bool errata_probe_wfi(unsigned int stage)
+{
+	if (!IS_ENABLED(CONFIG_ERRATA_MIPS_P8700_WFI))
+		return false;
+
+	if (!riscv_isa_vendor_extension_available(MIPS_VENDOR_ID, XMIPSEXECTL))
+		return false;
+
+	if (stage == RISCV_ALTERNATIVES_EARLY_BOOT)
+		return false;
+
+	return true;
+}
+
 static u32 mips_errata_probe(unsigned int stage)
 {
 	u32 cpu_req_errata = 0;
 
 	if (errata_probe_pause(stage))
 		cpu_req_errata |= BIT(ERRATA_MIPS_P8700_PAUSE_OPCODE);
+
+	if (errata_probe_wfi(stage))
+		cpu_req_errata |= BIT(ERRATA_MIPS_P8700_WFI);
 
 	return cpu_req_errata;
 }
