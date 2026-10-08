@@ -1272,7 +1272,6 @@ void riscv_clear_hypervisor_csr(void)
 	csr_clear(CSR_HSTATUS, HSTATUS_HU);
 }
 
-#ifdef CONFIG_RISCV_ALTERNATIVE
 /*
  * Alternative patch sites consider 48 bits when determining when to patch
  * the old instruction sequence with the new. These bits are broken into a
@@ -1361,4 +1360,3 @@ void __init_or_module riscv_cpufeature_patch_func(struct alt_entry *begin,
 		mutex_unlock(&text_mutex);
 	}
 }
-#endif
